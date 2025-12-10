@@ -91,36 +91,3 @@ Example Request
   "threshold": 90,
   "max_iterations": 3
 }
-Response Includes
-
-run_id
-
-final_state.quality_score
-
-final_state.suggestions
-
-execution_log – detailed description of each step executed
-
-Why This Project Meets the Assignment Requirements
-Implements a minimal workflow graph engine
-
-Uses state as a shared memory across nodes
-
-Supports branching and looping
-
-Provides all required REST endpoints
-
-Includes a complete example workflow (Option A)
-
-Implements tool registry and interpreter patterns
-
-Built with clear, modular, production-style architecture
-
-Potential Future Enhancements
-Persist graphs and runs in a database (PostgreSQL)
-
-Async execution for long-running tools
-
-WebSocket-based live execution logs
-
-Dynamic conditional branching rules via JSON
