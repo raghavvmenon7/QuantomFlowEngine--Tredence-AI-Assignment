@@ -1,147 +1,126 @@
-\# QuantumFlow Engine
+# QuantumFlow Engine – Tredence AI Engineering Assignment
 
-\*\*Tredence AI Engineering Assignment\*\*
+QuantumFlow Engine is a modular and extensible workflow/graph execution engine built using FastAPI and Python.
+It is designed to satisfy the requirements of the Tredence AI Engineering Assignment and demonstrates the following capabilities:
 
-QuantumFlow Engine is a modular, graph-based workflow execution engine built using FastAPI and Python. It is designed to demonstrate architectural clarity, state management, and extensible tool orchestration.
+* A minimal workflow execution engine
+* State-driven node transitions
+* Tool/function registry
+* Conditional routing and loop logic
+* Clean REST API interface
+* Complete implementation of **Option A: Code Review Agent**
 
-The system features a custom graph executor, a central tool registry (Nexus), and a complete implementation of \*\*Option A: Code Review Agent\*\*.
+This backend uses a structured and scalable architecture designed for clarity, modularity, and maintainability.
 
-\## Key Capabilities
+## Key Features
 
-1\. \*\*Graph-Based Execution\*\*
+### 1. Quantum Graph Engine
 
-&nbsp; Workflows are defined as directed graphs where nodes represent functional steps and edges define transitions.
+* Workflows represented as directed graphs
+* Nodes mapped to Python functions (tools)
+* Edges define node-to-node transitions
+* A shared state dictionary flows through all nodes
+* Supports looping and branching using conditional logic
 
-2\. \*\*State-Driven Architecture\*\*
+### 2. Tool Registry (Nexus)
 
-&nbsp; A shared state dictionary persists across the workflow, allowing data to flow seamlessly between independent tools.
+* All node functions are registered globally in the Nexus Registry
+* Tools operate on the same state object
+* Allows flexible extension of new tools without modifying the core engine
 
-3\. \*\*Conditional Routing \& Looping\*\*
+### 3. In-Memory Runtime
 
-&nbsp; The engine supports dynamic branching and iterative loops based on state conditions (e.g., repeating a step until a quality threshold is met).
+* Stores graph definitions (graph_id)
+* Run details (run_id)
+* Current node and State snapshots
+* Execution logs
 
-4\. \*\*Decoupled Tool Registry\*\*
+### 4. FastAPI REST Endpoints
 
-&nbsp; Logic is separated from execution. The Nexus Registry manages tools, making the system easily extensible without modifying the core engine.
+* **GET /health** – Service health check
+* **POST /prism/run** – Run the prebuilt Option A workflow
+* **GET /docs** – Interactive API documentation
 
-\## Architecture Overview
+## Example Workflow – Option A: Code Review Agent
 
-The project follows a clean separation of concerns:
+Implements the steps specified in the assignment for the "Code Prism" workflow:
 
-nexus_project/
+1. **Extract:** Parses input code to identify functions.
+2. **Analyze:** Calculates complexity and identifies stylistic or logical issues.
+3. **Suggest:** Generates specific refactoring suggestions.
+4. **Checkpoint:** Evaluates the quality score. If below threshold, loops back to refinement.
 
+## Architecture Overview
+
+```text
+QuantumFlowEngine/
 │
-
 ├── nexus_api/
-
-│ ├── main.py # FastAPI application entry point
-
-│ │
-
-│ ├── pulse_engine/ # Core Workflow Logic
-
-│ │ ├── executor.py # Graph execution and routing
-
-│ │ ├── tool_hub.py # Tool registration system
-
-│ │ └── memory_core.py # In-memory state management
-
-│ │
-
-│ └── agents/ # Specific Agent Implementations
-
-│ └── code_prism.py # Option A: Code Review workflow tools
-
+│   ├── main.py                  # FastAPI application and routes
+│   │
+│   ├── pulse_engine/
+│   │   ├── executor.py          # Core workflow executor
+│   │   ├── tool_hub.py          # Tool registry for node functions
+│   │   └── memory_core.py       # In-memory graphs and execution runs
+│   │
+│   ├── data_models/
+│   │   └── flow_models.py       # Pydantic request/response schemas
+│   │
+│   └── agents/
+│       └── code_prism.py        # Option A workflow tools and graph
 │
-
-├── requirements.txt
-
 └── README.md
+How to Run the Project
+1. Install Dependencies
+Bash
 
-\## Installation \& Usage
+pip install -r requirements.txt
+2. Start the Server
+Bash
 
-\### 1. Install Dependencies
+python -m uvicorn nexus_api.main:app --reload
+3. Verify Service Availability
+http://127.0.0.1:8000/docs
 
-Ensure Python 3.9+ is installed.
+Running Option A Workflow
+Endpoint POST /prism/run
 
-&nbsp; pip install -r requirements.txt
-
-\### 2. Start the Server
-
-Launch the FastAPI application using Uvicorn.
-
-&nbsp; python -m uvicorn nexus_api.main:app --reload
-
-\### 3. API Documentation
-
-Once running, the interactive API documentation is available at:
-
-\* Docs: http://127.0.0.1:8000/docs
-
-\* Health Check: http://127.0.0.1:8000/health
-
-\## Code Review Agent (Option A)
-
-This project implements the Code Review workflow ("Code Prism"). The agent autonomously analyzes Python code, checks for complexity, and iteratively suggests improvements until the quality score meets a defined threshold.
-
-\### Workflow Logic
-
-1\. \*\*Extract:\*\* Parses the input code to identify functions.
-
-2\. \*\*Analyze:\*\* Calculates complexity and identifies stylistic or logical issues.
-
-3\. \*\*Suggest:\*\* Generates specific refactoring suggestions.
-
-4\. \*\*Checkpoint:\*\* Evaluates the quality score. If it is below the threshold, the workflow loops back to refinement.
-
-\### How to Run
-
-\*\*Endpoint:\*\* POST /prism/run
-
-\*\*Sample Payload:\*\*
-
-```json
-
+Example Request
 {
-
-&nbsp; "code": "def bad\_function():\\n    print('this is messy')",
-
-&nbsp; "threshold": 90,
-
-&nbsp; "max\_iterations": 3
-
+  "code": "def bad_function():\n    print('this is messy')",
+  "threshold": 90,
+  "max_iterations": 3
 }
+Response Includes
 
+run_id
 
+final_state.quality_score
 
-Response: The API returns the final state, including the quality score, a list of suggestions, and the full execution log showing the iterative process.
+final_state.suggestions
 
+execution_log – detailed description of each step executed
 
+Why This Project Meets the Assignment Requirements
+Implements a minimal workflow graph engine
 
-Design Decisions
+Uses state as a shared memory across nodes
 
-Modularity: The engine (Pulse) is completely agnostic of the specific agent logic (Prism). This allows new agents to be added simply by registering new tools.
+Supports branching and looping
 
+Provides all required REST endpoints
 
+Includes a complete example workflow (Option A)
 
-Synchronous Execution: For this assignment, execution is handled synchronously to ensure strict ordering of steps and simplified debugging.
+Implements tool registry and interpreter patterns
 
+Built with clear, modular, production-style architecture
 
+Potential Future Enhancements
+Persist graphs and runs in a database (PostgreSQL)
 
-In-Memory State: Run history and state are stored in memory for performance and simplicity, appropriate for the scope of this assignment.
+Async execution for long-running tools
 
+WebSocket-based live execution logs
 
-
-Future Improvements
-
-Persistence: Integration with PostgreSQL to persist workflow states and support long-running jobs.
-
-
-
-Async Processing: Converting tool execution to async/await patterns to handle high-latency operations (e.g., real LLM calls).
-
-
-
-Dynamic Loading: Loading graph definitions from JSON configuration files at runtime.
-
-```
+Dynamic conditional branching rules via JSON
