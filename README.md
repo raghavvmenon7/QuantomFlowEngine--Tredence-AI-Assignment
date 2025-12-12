@@ -1,112 +1,238 @@
-# QuantumFlow Engine – Tredence AI Engineering Assignment
+# QuantumFlow Engine  
+**Tredence AI Engineering Assignment**
 
-**QuantumFlow Engine** is a modular and extensible workflow/graph execution engine built using **FastAPI** and **Python**. Designed to satisfy the requirements of the Tredence AI Engineering Assignment, it provides a clean backend architecture for defining agentic pipelines, managing state, and executing logic loops.
+**QuantumFlow Engine** is a modular, extensible, graph-driven workflow execution system built using **FastAPI** and **Python**.  
+It is inspired by LangGraph and implements a complete **Code Review Mini-Agent** pipeline featuring branching, looping, tool orchestration, and shared-state propagation.
 
-This project implements **Option A: Code Review Agent** (internally named "Code Prism") to demonstrate the engine's capabilities in handling branching, looping, and state retention.
+This backend demonstrates a clean, scalable, and production-ready architecture while satisfying all requirements of the Tredence AI Engineering assignment.
 
-## Features
+---
 
-### Core Engine
-* **Quantum Graph Engine:** Workflows are represented as directed graphs where nodes map to Python functions and edges define transitions.
-* **State-Driven Architecture:** A shared state dictionary flows through all nodes, allowing for dynamic data modification and persistence.
-* **Nexus Tool Registry:** A centralized registry where all node functions are stored, allowing for flexible extension of new tools without modifying the core engine.
-* **Control Flow:** Supports conditional routing (branching) and iterative loops (e.g., refining code until a quality threshold is met).
-* **In-Memory Runtime:** Efficiently stores graph definitions, active run states, and execution logs in memory for low-latency performance.
+## Key Features
 
-### Example Workflow: Code Prism (Option A)
-The engine implements a complete code review pipeline that iteratively improves code quality:
-1.  **Extract** – Parses input code to identify functions and structure.
-2.  **Analyze** – Calculates complexity metrics and identifies stylistic or logical issues.
-3.  **Suggest** – Generates specific refactoring suggestions based on analysis.
-4.  **Checkpoint (Loop)** – Evaluates the quality score against a threshold. If the score is insufficient, the workflow loops back to refinement (up to a max iteration limit).
+### 1. Quantum Graph Engine
+* **Directed Graph Workflows:** Each workflow is represented as a graph of nodes and edges controlling execution order.  
+* **Shared State Model:** A Pydantic-validated state object flows across all nodes, ensuring safety and transparency.  
+* **Branching & Looping:** Supports conditional routing and repeated execution cycles (e.g., quality improvement loops).  
+* **Execution Logging:** Generates timestamped logs for every step of every run.
 
-## API Endpoints
+### 2. Nexus Tool Registry
+* **Centralized Registry:** All functional tools used by nodes are registered globally in the Nexus registry.  
+* **Extensible:** Developers can add new tools without modifying core engine logic.  
+* **Decoupled Workflows:** Nodes reference tools by name, enabling declarative graph definitions.
 
-The system exposes a clean REST interface via FastAPI:
+### 3. In-Memory Runtime
+* Stores workflow graph definitions.  
+* Maintains active workflow runs and their execution logs.  
+* Preserves state snapshots for inspection via APIs.  
 
-* `GET /health` – Service health check to verify availability.
-* `POST /prism/run` – triggers the prebuilt **Code Prism** (Option A) workflow.
-* `GET /docs` – Interactive Swagger UI documentation.
-* `GET /redoc` – ReDoc API documentation.
+### 4. REST API Suite
+QuantumFlow exposes a clean set of HTTP endpoints:
+
+* **GET /health** – Health check  
+* **POST /graph/create** – Register a new workflow graph  
+* **POST /graph/run** – Execute a graph with initial state  
+* **GET /graph/state/{run_id}** – Retrieve complete run logs + final state  
+* **GET /graph/{graph_id}/definition** – View graph structure  
+* **GET /graph/list** – List all graphs  
+* **POST /tools/register** – Register a new tool dynamically  
+* **GET /tools/list** – View all registered tools  
+
+---
+
+## Example Workflow – Code Review Agent (Quantum Prism)
+
+QuantumFlow includes a full implementation of the **Code Review Agent**, nicknamed **Quantum Prism**.  
+It autonomously parses Python code, analyzes complexity, detects issues, generates suggestions, and iterates until quality reaches a target threshold.
+
+### Workflow Logic
+1. **Extract Functions** – Parses Python code to detect function definitions.  
+2. **Check Complexity** – Evaluates parameter count and basic complexity heuristics.  
+3. **Detect Issues** – Checks for long lines, TODO comments, missing docstrings, and code smells.  
+4. **Suggest Improvements** – Generates actionable refactoring tips.  
+5. **Compute Quality Score** – Produces a numeric score from 0 to 100.  
+6. **Loop Node** – If score < threshold, rerun improvements (max 3 cycles).
+
+---
 
 ## Installation
 
-Clone the repository and install the required dependencies:
+Clone the repository and install dependencies:
 
 ```bash
-Running the Server
-Start the FastAPI server using Uvicorn:
+git clone https://github.com/<your-username>/quantumflow-engine.git
+cd quantumflow-engine
+pip install -r requirements.txt
+```
 
-Bash
+Start the FastAPI server:
 
-python -m uvicorn nexus_api.main:app --reload
-The API will be available at:
+```bash
+uvicorn app.main:app --reload --port 8000
+```
 
-API Docs: http://127.0.0.1:8000/docs
+Access:
 
-Health Check: https://www.google.com/search?q=http://127.0.0.1:8000/health
+* **API Docs:** http://localhost:8000/docs  
+* **ReDoc:** http://localhost:8000/redoc  
+* **Health:** http://localhost:8000/health  
 
-Usage Examples
-Running the Code Review Agent
-You can trigger the "Code Prism" workflow using curl or Postman.
+---
 
-Request:
+## Usage Examples
 
-Bash
+### Running the Quantum Prism Code Review Workflow
 
-curl -X POST "[http://127.0.0.1:8000/prism/run](http://127.0.0.1:8000/prism/run)" \
+```bash
+curl -X POST "http://localhost:8000/graph/run" \
   -H "Content-Type: application/json" \
   -d '{
-    "code": "def bad_function():\n    print(\"this is messy\")",
-    "threshold": 90,
-    "max_iterations": 3
+    "graph_id": "code_review_default",
+    "initial_state": {
+      "code": "def calculate(a, b, c, d, e):\n    return a + b + c + d + e"
+    }
   }'
-Response: The API will return a JSON object containing the run_id, the final_state (with quality scores and suggestions), and a detailed execution_log.
+```
 
-Project Structure
-Plaintext
+The response returns:
 
-QuantumFlowEngine/
-│
-├── nexus_api/
-│   ├── main.py                  # FastAPI application entry point
-│   │
-│   ├── pulse_engine/
-│   │   ├── executor.py          # Core workflow execution logic
-│   │   ├── tool_hub.py          # Nexus Registry for tool management
-│   │   └── memory_core.py       # In-memory storage for graphs/runs
-│   │
-│   ├── data_models/
-│   │   └── flow_models.py       # Pydantic schemas for requests/responses
-│   │
-│   └── agents/
-│       └── code_prism.py        # Option A workflow definition & tools
-│
-├── requirements.txt             # Project dependencies
-└── README.md                    # Project documentation
-Future Improvements
-Given more time, the following features would be added to enhance production readiness:
+* `run_id` — Unique identifier for this execution  
+* `final_state` — End state after all nodes complete  
+* `execution_log` — Timestamped node-by-node trace  
 
-Persistent Storage: Migrate from memory_core.py to a proper database (SQLite/PostgreSQL) to persist run history across server restarts.
+### Creating a Custom QuantumFlow Graph
 
-Async Execution: Fully leverage Python's asyncio for non-blocking execution of long-running tools.
+```bash
+curl -X POST "http://localhost:8000/graph/create" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nodes": [
+      {
+        "name": "extract",
+        "tool_name": "extract_functions",
+        "inputs": {"code": "$code"}
+      },
+      {
+        "name": "check_complexity",
+        "tool_name": "check_complexity",
+        "inputs": {"functions": "$extracted_functions"}
+      }
+    ],
+    "edges": {
+      "extract": "check_complexity"
+    },
+    "graph_id": "my_custom_graph"
+  }'
+```
 
-Dynamic Graph Creation: Expose an endpoint to define new graphs via JSON payload (rather than hardcoding them in agents/).
+### Fetching Run State
 
-WebSocket Streaming: Stream logs to the client in real-time as nodes complete execution.
+```bash
+curl -X GET "http://localhost:8000/graph/state/{run_id}"
+```
 
-Design Decisions
-Simplicity over Complexity: The engine uses a straightforward graph traversal algorithm to ensure clarity and ease of debugging.
+---
 
-Centralized Tooling (Nexus): Decoupling tools from the graph logic allows them to be tested independently and reused across different workflows.
+## Running Tests
 
-Pydantic for Data: Strict typing ensures that state transitions are valid and reduces runtime errors.
+```bash
+pytest tests/ -v
+```
 
-In-Memory Storage: Chosen for this assignment to keep the setup minimal and focused on logic rather than infrastructure overhead.
+With coverage:
 
-License
-MIT License - Feel free to use this as a learning resource or a base for your own agentic workflows.
-git clone [https://github.com/](https://github.com/)<your-username>/quantum-flow-engine.git
-cd QuantumFlowEngine
-pip install -r requirements.txt
+```bash
+pytest tests/ -v --cov=app --cov-report=html
+```
 
+---
+
+## Project Structure
+
+```
+quantumflow-engine/
+├── app/
+│   ├── main.py                    # FastAPI entry point
+│   ├── api/
+│   │   ├── router_workflow.py     # Graph endpoints
+│   │   └── router_tools.py        # Tool registry endpoints
+│   ├── engine/
+│   │   ├── workflow_engine.py     # Core graph executor
+│   │   ├── node.py                # Node + loop node definitions
+│   │   └── state.py               # Shared Pydantic state model
+│   ├── tools/
+│   │   ├── builtins.py            # Built-in code-review tools
+│   │   └── registry.py            # Nexus tool registry
+│   └── workflows/
+│       └── code_review_workflow.py # Quantum Prism workflow
+├── tests/
+│   └── test_workflow.py
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## What the Engine Supports
+
+* **Nodes:** Functions that read/modify state  
+* **Edges:** Explicit transitions linking nodes  
+* **State:** Pydantic model ensuring safe state propagation  
+* **Branching:** Route execution based on conditions  
+* **Looping:** Re-run segments until constraints are met  
+* **Run Tracking:** Each run captures logs + final state  
+* **Tool Registry:** Register and execute tools dynamically  
+* **Async-Ready:** Engine supports async functions  
+
+---
+
+## Future Improvements
+
+With additional time, QuantumFlow could support:
+
+1. **Persistent Storage**  
+   * Move from in-memory to PostgreSQL/SQLite  
+   * Persist workflow history and states  
+
+2. **WebSocket Streaming**  
+   * Real-time logs as nodes execute  
+
+3. **Advanced Branching**  
+   * Multi-branch routing  
+   * Conditional edge selection  
+
+4. **Background Execution**  
+   * Run long workflows asynchronously  
+   * Celery/RQ-backed workers  
+
+5. **Better Error Handling**  
+   * Retry logic  
+   * Node fallback policy  
+
+6. **Flexible State Merge Strategies**  
+   * Pluggable merge behavior instead of fixed updates  
+
+7. **Graph Visualization**  
+   * Mermaid/Graphviz DAG rendering  
+   * Execution trace visualization  
+
+8. **Additional Built-in Tools**  
+   * Deeper AST code analysis  
+   * Support for multiple languages  
+   * External LLM or lint integrations  
+
+---
+
+## Design Decisions
+
+* **Modularity:** Engine is workflow-agnostic; tools define behavior.  
+* **Explicit Edges:** Ensures transparent debugging.  
+* **Pydantic State:** Guarantees type-safe state flow.  
+* **In-Memory Simplicity:** Ideal for demo and extension.  
+* **Structured Logging:** Debug-friendly execution insights.  
+
+---
+
+## License
+
+MIT License — Feel free to extend, reuse, or customize this engine for your own projects.
