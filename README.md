@@ -34,6 +34,79 @@ The system exposes a clean REST interface via FastAPI:
 Clone the repository and install the required dependencies:
 
 ```bash
+Running the Server
+Start the FastAPI server using Uvicorn:
+
+Bash
+
+python -m uvicorn nexus_api.main:app --reload
+The API will be available at:
+
+API Docs: http://127.0.0.1:8000/docs
+
+Health Check: https://www.google.com/search?q=http://127.0.0.1:8000/health
+
+Usage Examples
+Running the Code Review Agent
+You can trigger the "Code Prism" workflow using curl or Postman.
+
+Request:
+
+Bash
+
+curl -X POST "[http://127.0.0.1:8000/prism/run](http://127.0.0.1:8000/prism/run)" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "def bad_function():\n    print(\"this is messy\")",
+    "threshold": 90,
+    "max_iterations": 3
+  }'
+Response: The API will return a JSON object containing the run_id, the final_state (with quality scores and suggestions), and a detailed execution_log.
+
+Project Structure
+Plaintext
+
+QuantumFlowEngine/
+│
+├── nexus_api/
+│   ├── main.py                  # FastAPI application entry point
+│   │
+│   ├── pulse_engine/
+│   │   ├── executor.py          # Core workflow execution logic
+│   │   ├── tool_hub.py          # Nexus Registry for tool management
+│   │   └── memory_core.py       # In-memory storage for graphs/runs
+│   │
+│   ├── data_models/
+│   │   └── flow_models.py       # Pydantic schemas for requests/responses
+│   │
+│   └── agents/
+│       └── code_prism.py        # Option A workflow definition & tools
+│
+├── requirements.txt             # Project dependencies
+└── README.md                    # Project documentation
+Future Improvements
+Given more time, the following features would be added to enhance production readiness:
+
+Persistent Storage: Migrate from memory_core.py to a proper database (SQLite/PostgreSQL) to persist run history across server restarts.
+
+Async Execution: Fully leverage Python's asyncio for non-blocking execution of long-running tools.
+
+Dynamic Graph Creation: Expose an endpoint to define new graphs via JSON payload (rather than hardcoding them in agents/).
+
+WebSocket Streaming: Stream logs to the client in real-time as nodes complete execution.
+
+Design Decisions
+Simplicity over Complexity: The engine uses a straightforward graph traversal algorithm to ensure clarity and ease of debugging.
+
+Centralized Tooling (Nexus): Decoupling tools from the graph logic allows them to be tested independently and reused across different workflows.
+
+Pydantic for Data: Strict typing ensures that state transitions are valid and reduces runtime errors.
+
+In-Memory Storage: Chosen for this assignment to keep the setup minimal and focused on logic rather than infrastructure overhead.
+
+License
+MIT License - Feel free to use this as a learning resource or a base for your own agentic workflows.
 git clone [https://github.com/](https://github.com/)<your-username>/quantum-flow-engine.git
 cd QuantumFlowEngine
 pip install -r requirements.txt
+
